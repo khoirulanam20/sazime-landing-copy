@@ -1,0 +1,110 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer utilities {
+
+    /* Custom Scrollbar */
+    .custom-scrollbar::-webkit-scrollbar {
+        width: 8px;
+        height: 8px;
+    }
+
+    .custom-scrollbar::-webkit-scrollbar-track {
+        background: #f1f5f9;
+        border-radius: 10px;
+    }
+
+    .custom-scrollbar::-webkit-scrollbar-thumb {
+        background: #cbd5e1;
+        border-radius: 10px;
+    }
+
+    .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+        background: #94a3b8;
+    }
+
+    /* Smooth Animations */
+    .animate-in {
+        animation-fill-mode: both;
+    }
+
+    .fade-in {
+        animation: fadeIn 0.3s ease-in-out;
+    }
+
+    .zoom-in-95 {
+        animation: zoomIn95 0.2s ease-out;
+    }
+
+    @keyframes fadeIn {
+        from {
+            opacity: 0;
+        }
+
+        to {
+            opacity: 1;
+        }
+    }
+
+    @keyframes zoomIn95 {
+        from {
+            opacity: 0;
+            transform: scale(0.95);
+        }
+
+        to {
+            opacity: 1;
+            transform: scale(1);
+        }
+    }
+
+    .bg-primary {
+        background-color: #B91C1C;
+    }
+
+    .text-primary {
+        color: #B91C1C;
+    }
+
+    .bg-secondary {
+        background-color: #0f172a;
+    }
+
+    /* Marketplace Brand Colors */
+    .hover-tokopedia:hover {
+        border-color: #42b549;
+    }
+
+    .text-tokopedia {
+        color: #42b549;
+    }
+
+    .bg-tokopedia-soft {
+        background-color: #ebfff0;
+    }
+
+    .hover-shopee:hover {
+        border-color: #ee4d2d;
+    }
+
+    .text-shopee {
+        color: #ee4d2d;
+    }
+
+    .bg-shopee-soft {
+        background-color: #fff0eb;
+    }
+
+    .hover-tiktok:hover {
+        border-color: #000000;
+    }
+
+    .text-tiktok {
+        color: #000000;
+    }
+
+    .bg-tiktok-soft {
+        background-color: #f2f2f2;
+    }
+}

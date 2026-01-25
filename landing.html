@@ -1,0 +1,442 @@
+<!DOCTYPE html>
+<html lang="id" class="scroll-smooth">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SAZIME - Digital Printing & Sangkar Burung Premium</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Google Fonts: Inter & Outfit -->
+    <link
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=Outfit:wght@400;600;700;800;900&display=swap"
+        rel="stylesheet">
+    <!-- FontAwesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#dc2626', // red-600
+                        secondary: '#0f172a', // slate-900
+                        tokopedia: '#03ac0e',
+                        shopee: '#ee4d2d',
+                        tiktok: '#000000',
+                    },
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                        outfit: ['Outfit', 'sans-serif'],
+                    },
+                    borderRadius: {
+                        '4xl': '2rem',
+                        '5xl': '2.5rem',
+                        '6xl': '3rem',
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        .glass {
+            background: rgba(255, 255, 255, 0.7);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+        }
+
+        .text-gradient {
+            background: linear-gradient(to right, #dc2626, #991b1b);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .bg-tokopedia-soft {
+            background-color: rgba(3, 172, 14, 0.1);
+        }
+
+        .bg-shopee-soft {
+            background-color: rgba(238, 77, 45, 0.1);
+        }
+
+        .bg-tiktok-soft {
+            background-color: rgba(0, 0, 0, 0.05);
+        }
+    </style>
+</head>
+
+<body class="bg-[#f8fafc] text-slate-900 font-sans">
+
+    <!-- Navigation -->
+    <nav class="fixed top-0 left-0 right-0 z-50 glass border-b border-white/20">
+        <div class="max-w-7xl mx-auto px-6 h-20 flex items-center justify-between">
+            <a href="#" class="flex items-center gap-2">
+                <span class="text-2xl font-black tracking-tighter text-primary">SAZIME</span>
+                <span class="text-2xl font-black tracking-tighter italic">HUB</span>
+            </a>
+            <div class="hidden md:flex items-center gap-8">
+                <a href="#home"
+                    class="text-sm font-bold uppercase tracking-widest hover:text-primary transition">Beranda</a>
+                <a href="#about"
+                    class="text-sm font-bold uppercase tracking-widest hover:text-primary transition">Tentang</a>
+                <a href="#marketplace"
+                    class="text-sm font-bold uppercase tracking-widest hover:text-primary transition">Marketplace</a>
+                <a href="#contact"
+                    class="px-6 py-3 bg-primary text-white rounded-xl font-bold text-xs uppercase tracking-widest hover:bg-red-700 transition shadow-lg shadow-red-200">
+                    Hubungi Kami
+                </a>
+            </div>
+            <button class="md:hidden text-2xl"><i class="fas fa-bars"></i></button>
+        </div>
+    </nav>
+
+    <!-- Hero Section (Beranda) -->
+    <section id="home" class="relative pt-32 pb-24 px-6 overflow-hidden">
+        <div class="absolute top-0 right-0 w-1/2 h-full bg-slate-100 -z-10 rounded-l-[10rem] hidden lg:block"></div>
+        <div class="max-w-7xl mx-auto grid lg:grid-cols-2 gap-12 items-center">
+            <div class="space-y-8">
+                <span
+                    class="inline-block bg-primary/10 text-primary px-4 py-1.5 rounded-full text-[10px] font-black uppercase tracking-widest">
+                    One Stop Business Solution
+                </span>
+                <h1 class="text-5xl md:text-7xl font-black leading-[1.1] tracking-tight italic">
+                    Tumbuh Lebih Cepat <br> Bersama <span class="text-primary">SAZIME</span>
+                </h1>
+                <p class="text-lg text-slate-500 max-w-xl leading-relaxed">
+                    Platform terpusat yang mengelola layanan digital printing profesional, hub penjualan strategis,
+                    hingga kerajinan sangkar burung berkualitas premium.
+                </p>
+                <div class="flex flex-wrap gap-4">
+                    <a href="#marketplace"
+                        class="px-8 py-5 bg-primary text-white rounded-2xl font-black text-sm uppercase tracking-widest hover:bg-red-700 transition shadow-xl shadow-red-200">
+                        Belanja Sekarang
+                    </a>
+                    <a href="#about"
+                        class="px-8 py-5 bg-white border border-slate-200 text-slate-900 rounded-2xl font-black text-sm uppercase tracking-widest hover:bg-slate-50 transition">
+                        Pelajari Lebih Lanjut
+                    </a>
+                </div>
+            </div>
+            <div class="relative">
+                <div class="absolute -top-12 -right-12 w-64 h-64 bg-primary/5 rounded-full blur-3xl"></div>
+                <div class="relative z-10 rounded-[3.5rem] overflow-hidden shadow-2xl border-8 border-white">
+                    <img src="https://images.unsplash.com/photo-1581091226825-a6a2a5aee158?auto=format&fit=crop&q=80&w=800"
+                        alt="Hero Sazime" class="w-full h-auto">
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Services Section (Beranda) -->
+    <section class="py-24 px-6 bg-slate-900 text-white rounded-t-[5rem]">
+        <div class="max-w-7xl mx-auto">
+            <div class="text-center mb-16">
+                <h2 class="text-3xl md:text-5xl font-black italic mb-4">Dua Pilar Sazime</h2>
+                <div class="w-24 h-1 bg-primary mx-auto rounded-full"></div>
+            </div>
+            <div class="grid md:grid-cols-2 gap-8">
+                <!-- Column 1 -->
+                <div
+                    class="group p-10 bg-white/5 rounded-[3rem] border border-white/10 hover:bg-primary transition-all duration-500">
+                    <div
+                        class="w-16 h-16 bg-primary rounded-2xl flex items-center justify-center text-2xl mb-8 group-hover:bg-white group-hover:text-primary transition-colors">
+                        <i class="fas fa-print"></i>
+                    </div>
+                    <h3 class="text-2xl font-bold mb-4 italic">Sazime Digital Printing</h3>
+                    <p class="text-slate-400 group-hover:text-white/80 leading-relaxed">
+                        Layanan cetak outdoor & indoor berkualitas tinggi untuk kebutuhan promosi bisnis Anda. Kami
+                        menggunakan teknologi terbaru untuk hasil presisi.
+                    </p>
+                </div>
+                <!-- Column 2 -->
+                <div
+                    class="group p-10 bg-white/5 rounded-[3rem] border border-white/10 hover:bg-slate-800 transition-all duration-500">
+                    <div
+                        class="w-16 h-16 bg-slate-800 rounded-2xl flex items-center justify-center text-2xl mb-8 group-hover:bg-primary transition-colors">
+                        <i class="fas fa-warehouse"></i>
+                    </div>
+                    <h3 class="text-2xl font-bold mb-4 italic">Sazime Sangkar Burung</h3>
+                    <p class="text-slate-400 leading-relaxed">
+                        Produksi sangkar burung handmade dengan material terbaik. Menggabungkan kekuatan material dengan
+                        nilai estetika seni tinggi.
+                    </p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- About Story Section (Tentang) -->
+    <section id="about" class="py-24 px-6 bg-white overflow-hidden">
+        <div class="max-w-7xl mx-auto grid lg:grid-cols-2 gap-20 items-center">
+            <div class="relative order-2 lg:order-1">
+                <div class="absolute -bottom-10 -left-10 w-48 h-48 bg-primary rounded-[3rem] -z-10"></div>
+                <img src="https://images.unsplash.com/photo-1522071823991-b59fe5719a71?auto=format&fit=crop&q=80&w=800"
+                    alt="Our Story" class="rounded-[4rem] shadow-2xl relative">
+            </div>
+            <div class="order-1 lg:order-2 space-y-6">
+                <h3 class="text-primary font-black uppercase tracking-[0.3em] text-xs">Mengenal Lebih Dekat</h3>
+                <h2 class="text-4xl md:text-5xl font-black italic">Kreativitas & Kualitas <br> <span
+                        class="text-primary">Tanpa Batas</span></h2>
+                <p class="text-lg text-slate-500 leading-relaxed">
+                    Berawal dari semangat untuk menghadirkan layanan digital printing yang cepat dan berkualitas di
+                    Semarang, SAZIME terus berkembang pesat. Kami melihat adanya kebutuhan akan produk kreatif yang
+                    tidak hanya fungsional tapi juga memiliki nilai seni tinggi.
+                </p>
+                <div class="space-y-4 pt-4">
+                    <div class="flex items-center gap-4 text-slate-800 font-bold">
+                        <div class="w-10 h-10 rounded-full bg-primary/10 text-primary flex items-center justify-center">
+                            <i class="fas fa-check"></i></div>
+                        <span>Cetak Presisi & Teknologi Terkini</span>
+                    </div>
+                    <div class="flex items-center gap-4 text-slate-800 font-bold">
+                        <div class="w-10 h-10 rounded-full bg-primary/10 text-primary flex items-center justify-center">
+                            <i class="fas fa-check"></i></div>
+                        <span>Handmade Sangkar Burung Premium</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Vision & Mission (Tentang) -->
+    <section class="py-24 px-6 bg-slate-50">
+        <div class="max-w-7xl mx-auto">
+            <div class="grid md:grid-cols-2 gap-12">
+                <div class="p-12 bg-white rounded-[4xl] shadow-sm border border-slate-100">
+                    <h3 class="text-2xl font-black italic mb-8 flex items-center gap-4">
+                        <span class="w-1.5 h-8 bg-primary rounded-full"></span> Visi Kami
+                    </h3>
+                    <p class="text-xl text-slate-600 italic leading-relaxed">
+                        "Menjadi platform solusi bisnis dan kreatif nomor satu yang mengedepankan inovasi, kualitas, dan
+                        kepuasan pelanggan."
+                    </p>
+                </div>
+                <div class="p-12 bg-secondary text-white rounded-[4xl] shadow-xl">
+                    <h3 class="text-2xl font-black italic mb-8 flex items-center gap-4 text-primary">
+                        <span class="w-1.5 h-8 bg-primary rounded-full"></span> Misi Kami
+                    </h3>
+                    <ul class="space-y-4">
+                        <li class="flex gap-4 items-start">
+                            <i class="fas fa-arrow-right mt-1 text-primary"></i>
+                            <span class="text-slate-300">Memberikan layanan cetak dengan teknologi terkini.</span>
+                        </li>
+                        <li class="flex gap-4 items-start">
+                            <i class="fas fa-arrow-right mt-1 text-primary"></i>
+                            <span class="text-slate-300">Memproduksi produk berkualitas ekspor.</span>
+                        </li>
+                        <li class="flex gap-4 items-start">
+                            <i class="fas fa-arrow-right mt-1 text-primary"></i>
+                            <span class="text-slate-300">Membangun ekosistem marketplace yang memudahkan.</span>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Marketplace Section (Beranda) -->
+    <section id="marketplace" class="py-24 px-6 bg-white">
+        <div class="max-w-7xl mx-auto text-center">
+            <div class="mb-16">
+                <h2 class="text-3xl md:text-5xl font-black italic mb-4">Temukan Kami di Marketplace</h2>
+                <p class="text-slate-500 max-w-2xl mx-auto leading-relaxed">
+                    Nikmati kemudahan berbelanja produk Sazime dengan berbagai promo menarik dan keamanan transaksi
+                    terjamin.
+                </p>
+            </div>
+            <div class="grid md:grid-cols-3 gap-8">
+                <!-- Tokopedia -->
+                <div
+                    class="p-10 rounded-[4xl] bg-tokopedia-soft border border-tokopedia/20 hover:scale-105 transition-transform cursor-pointer">
+                    <div
+                        class="w-20 h-20 mx-auto bg-tokopedia rounded-3xl flex items-center justify-center text-4xl text-white mb-6">
+                        <i class="fas fa-shopping-bag"></i>
+                    </div>
+                    <h4 class="text-2xl font-black mb-2">Tokopedia</h4>
+                    <p class="text-slate-600 mb-6 text-sm">Official Store Power Merchant Pro</p>
+                    <a href="#"
+                        class="inline-block px-6 py-3 bg-tokopedia text-white rounded-xl font-bold text-xs uppercase tracking-widest">Kunjungi
+                        Toko</a>
+                </div>
+                <!-- Shopee -->
+                <div
+                    class="p-10 rounded-[4xl] bg-shopee-soft border border-shopee/20 hover:scale-105 transition-transform cursor-pointer">
+                    <div
+                        class="w-20 h-20 mx-auto bg-shopee rounded-3xl flex items-center justify-center text-4xl text-white mb-6">
+                        <i class="fas fa-shopping-basket"></i>
+                    </div>
+                    <h4 class="text-2xl font-black mb-2">Shopee</h4>
+                    <p class="text-slate-600 mb-6 text-sm">Star Seller Terpercaya</p>
+                    <a href="#"
+                        class="inline-block px-6 py-3 bg-shopee text-white rounded-xl font-bold text-xs uppercase tracking-widest">Kunjungi
+                        Toko</a>
+                </div>
+                <!-- TikTok -->
+                <div
+                    class="p-10 rounded-[4xl] bg-tiktok-soft border border-tiktok/20 hover:scale-105 transition-transform cursor-pointer">
+                    <div
+                        class="w-20 h-20 mx-auto bg-tiktok rounded-3xl flex items-center justify-center text-4xl text-white mb-6">
+                        <i class="fab fa-tiktok"></i>
+                    </div>
+                    <h4 class="text-2xl font-black mb-2">TikTok Shop</h4>
+                    <p class="text-slate-600 mb-6 text-sm">Live Promo Eksklusif</p>
+                    <a href="#"
+                        class="inline-block px-6 py-3 bg-tiktok text-white rounded-xl font-bold text-xs uppercase tracking-widest">Kunjungi
+                        Toko</a>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Testimonials (Beranda) -->
+    <section class="py-24 px-6 bg-slate-900 text-white rounded-b-[5rem]">
+        <div class="max-w-7xl mx-auto">
+            <div class="text-center mb-16">
+                <h2 class="text-3xl md:text-5xl font-black italic mb-4">Apa Kata Mereka?</h2>
+                <div class="w-24 h-1 bg-primary mx-auto rounded-full"></div>
+            </div>
+            <div class="grid lg:grid-cols-3 gap-8">
+                <div class="p-8 bg-white/5 rounded-[3rem] border border-white/10">
+                    <div class="flex gap-1 mb-4 text-yellow-400">
+                        <i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i
+                            class="fas fa-star"></i><i class="fas fa-star"></i>
+                    </div>
+                    <p class="text-slate-300 italic mb-6">"Cetak banner di Sazime hasilnya tajam banget, warnanya
+                        keluar. Prosesnya juga cepet gak pake lama!"</p>
+                    <div class="flex items-center gap-4">
+                        <img src="https://i.pravatar.cc/150?img=12" alt="Budi"
+                            class="w-12 h-12 rounded-full border-2 border-primary">
+                        <div>
+                            <h4 class="font-bold">Budi Santoso</h4>
+                            <p class="text-[10px] uppercase tracking-widest text-slate-500">Pengusaha Kuliner</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="p-8 bg-white/5 rounded-[3rem] border border-white/10 scale-105 bg-slate-800">
+                    <div class="flex gap-1 mb-4 text-yellow-400">
+                        <i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i
+                            class="fas fa-star"></i><i class="fas fa-star"></i>
+                    </div>
+                    <p class="text-slate-300 italic mb-6">"Sangkar burungnya kokoh banget, finishingnya halus. Burung
+                        saya jadi makin nyaman di dalem."</p>
+                    <div class="flex items-center gap-4">
+                        <img src="https://i.pravatar.cc/150?img=45" alt="Andi"
+                            class="w-12 h-12 rounded-full border-2 border-primary">
+                        <div>
+                            <h4 class="font-bold">Andi Wijaya</h4>
+                            <p class="text-[10px] uppercase tracking-widest text-slate-500">Pecinta Burung</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="p-8 bg-white/5 rounded-[3rem] border border-white/10">
+                    <div class="flex gap-1 mb-4 text-yellow-400">
+                        <i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i
+                            class="fas fa-star"></i><i class="fas fa-star"></i>
+                    </div>
+                    <p class="text-slate-300 italic mb-6">"Satu tempat bisa pesen macem-macem kebutuhan. Pelayanannya
+                        ramah dan profesional."</p>
+                    <div class="flex items-center gap-4">
+                        <img src="https://i.pravatar.cc/150?img=33" alt="Maya"
+                            class="w-12 h-12 rounded-full border-2 border-primary">
+                        <div>
+                            <h4 class="font-bold">Maya Putri</h4>
+                            <p class="text-[10px] uppercase tracking-widest text-slate-500">Marketing Agency</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Contact & Footer (Beranda) -->
+    <footer id="contact" class="pt-24 pb-12 px-6 bg-secondary text-white">
+        <div class="max-w-7xl mx-auto space-y-20">
+            <div class="grid lg:grid-cols-2 gap-16">
+                <div class="space-y-8">
+                    <h2 class="text-4xl md:text-5xl font-black italic">Hubungi Kami</h2>
+                    <p class="text-slate-400 max-w-md">Punya pertanyaan atau ingin diskusi project? Tim kami siap
+                        membantu Anda menghadirkan solusi kreatif terbaik.</p>
+                    <div class="space-y-6">
+                        <div class="flex items-center gap-6">
+                            <div
+                                class="w-14 h-14 rounded-2xl bg-white/5 border border-white/10 flex items-center justify-center text-primary text-xl">
+                                <i class="fab fa-whatsapp"></i>
+                            </div>
+                            <div>
+                                <p class="text-xs text-slate-500 font-bold uppercase tracking-widest">WhatsApp Center
+                                </p>
+                                <p class="font-bold text-lg">+62 812 3456 7890</p>
+                            </div>
+                        </div>
+                        <div class="flex items-center gap-6">
+                            <div
+                                class="w-14 h-14 rounded-2xl bg-white/5 border border-white/10 flex items-center justify-center text-primary text-xl">
+                                <i class="fas fa-envelope"></i>
+                            </div>
+                            <div>
+                                <p class="text-xs text-slate-500 font-bold uppercase tracking-widest">Email Resmi</p>
+                                <p class="font-bold text-lg">halo@sazime.hub</p>
+                            </div>
+                        </div>
+                        <div class="flex items-center gap-6">
+                            <div
+                                class="w-14 h-14 rounded-2xl bg-white/5 border border-white/10 flex items-center justify-center text-primary text-xl">
+                                <i class="fas fa-map-marker-alt"></i>
+                            </div>
+                            <div>
+                                <p class="text-xs text-slate-500 font-bold uppercase tracking-widest">Alamat Workshop
+                                </p>
+                                <p class="font-bold text-lg">Jl. Kreatif No. 123, Semarang, Indonesia</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <!-- Contact Form Mockup -->
+                <div class="bg-white p-10 rounded-[4xl] space-y-6">
+                    <div class="space-y-2">
+                        <label class="text-xs font-black text-slate-400 uppercase tracking-widest">Nama Lengkap</label>
+                        <input type="text"
+                            class="w-full px-6 py-4 bg-slate-50 border border-slate-100 rounded-2xl text-slate-900 outline-none focus:ring-2 focus:ring-primary h-14">
+                    </div>
+                    <div class="space-y-2">
+                        <label class="text-xs font-black text-slate-400 uppercase tracking-widest">Keperluan</label>
+                        <select
+                            class="w-full px-6 py-4 bg-slate-50 border border-slate-100 rounded-2xl text-slate-900 outline-none focus:ring-2 focus:ring-primary h-14">
+                            <option>Digital Printing</option>
+                            <option>Sangkar Burung</option>
+                            <option>Layanan Lainnya</option>
+                        </select>
+                    </div>
+                    <div class="space-y-2">
+                        <label class="text-xs font-black text-slate-400 uppercase tracking-widest">Pesan</label>
+                        <textarea
+                            class="w-full px-6 py-4 bg-slate-50 border border-slate-100 rounded-2xl text-slate-900 outline-none focus:ring-2 focus:ring-primary"
+                            rows="4"></textarea>
+                    </div>
+                    <button
+                        class="w-full py-5 bg-primary text-white rounded-2xl font-black uppercase tracking-widest shadow-xl shadow-red-200">Kirim
+                        Pesan</button>
+                </div>
+            </div>
+
+            <div class="pt-20 border-t border-white/10 flex flex-col md:flex-row items-center justify-between gap-8">
+                <div class="flex items-center gap-2">
+                    <span class="text-2xl font-black tracking-tighter text-primary">SAZIME</span>
+                    <span class="text-2xl font-black tracking-tighter italic">HUB</span>
+                </div>
+                <div class="flex gap-8 text-2xl text-slate-500">
+                    <a href="#" class="hover:text-primary transition"><i class="fab fa-instagram"></i></a>
+                    <a href="#" class="hover:text-primary transition"><i class="fab fa-facebook"></i></a>
+                    <a href="#" class="hover:text-primary transition"><i class="fab fa-tiktok"></i></a>
+                    <a href="#" class="hover:text-primary transition"><i class="fab fa-whatsapp"></i></a>
+                </div>
+                <p class="text-xs text-slate-500 font-bold uppercase tracking-widest text-center">
+                    &copy; 2026 SAZIME DIGITAL & HOBBY. All Rights Reserved.
+                </p>
+            </div>
+        </div>
+    </footer>
+
+</body>
+
+</html>
