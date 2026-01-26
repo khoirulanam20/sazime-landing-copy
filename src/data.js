@@ -115,7 +115,7 @@ export const LANDING_DATA = {
             title: 'Perjalanan Kami',
             subtitle: 'Dedikasi untuk memberikan yang terbaik sejak hari pertama.',
             content: 'Berawal dari semangat untuk menghadirkan layanan digital printing yang cepat dan berkualitas di Semarang, SAZIME terus berkembang pesat. Kami melihat adanya kebutuhan akan produk kreatif yang tidak hanya fungsional tapi juga memiliki nilai seni tinggi. Itulah mengapa kami mengintegrasikan layanan percetakan dengan produksi sangkar burung handmade yang kini telah dipercaya oleh ratusan komunitas pecinta burung di seluruh Indonesia.',
-            image: 'https://images.unsplash.com/photo-1522071823991-b59fe5719a71?auto=format&fit=crop&q=80&w=600'
+            image: 'https://images.unsplash.com/photo-1552664730-d307ca884978?auto=format&fit=crop&q=80&w=600'
         },
         visionMission: {
             vision: 'Menjadi platform solusi bisnis dan kreatif nomor satu yang mengedepankan inovasi, kualitas, dan kepuasan pelanggan.',

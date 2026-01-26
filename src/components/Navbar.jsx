@@ -33,7 +33,7 @@ const Navbar = () => {
                         S
                     </div>
                     <span className={`text-2xl font-black tracking-tighter ${isScrolled ? 'text-slate-900' : 'text-slate-900'}`}>
-                        SAZIME<span className="text-red-600">.</span>
+                        SAZIME<span className="text-red-600">.ID</span>
                     </span>
                 </Link>
 
