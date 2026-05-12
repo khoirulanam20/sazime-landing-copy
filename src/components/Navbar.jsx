@@ -18,6 +18,7 @@ const Navbar = () => {
         { name: 'Beranda', path: '/' },
         { name: 'Tentang', path: '/tentang' },
         { name: 'Produk', path: '/produk' },
+        { name: 'Cek NFC', path: '/cek-nfc' },
         { name: 'Kontak', path: '/kontak' },
     ];
 
