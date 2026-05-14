@@ -1,263 +1,166 @@
-import React, { useState, useRef } from 'react';
-import { ScanLine, CheckCircle2, AlertCircle, Send, ArrowRight, Upload, Paperclip } from 'lucide-react';
+import React, { useCallback, useEffect, useState } from 'react';
+import { Link, useSearchParams } from 'react-router-dom';
+import { ScanLine, CheckCircle2, AlertCircle, ArrowRight, UserRound } from 'lucide-react';
+import RegisterRulesDisclosure from '../components/RegisterRulesDisclosure';
+import {
+    findChipByVerificationId,
+    formatVerificationIdDisplay,
+    normalizeVerificationId,
+    scanNfcForVerificationId,
+} from '../lib/nfcVerification';
+import { getConfirmedOwner, normalizeGmail } from '../lib/nfcOwnershipRegistry';
+import { useAuth } from '../context/AuthContext';
 
-const TEMPLATE_DOC_PATH = '/templates/surat-permohonan-pindah-pemilik-nfc.docx';
-const MAX_DOKUMEN_BYTES = 1.5 * 1024 * 1024;
-const ACCEPT_DOKUMEN = '.pdf,.jpg,.jpeg,.png,.doc,.docx';
-
-function readFileAsDataURL(file) {
-    return new Promise((resolve, reject) => {
-        const reader = new FileReader();
-        reader.onload = () => resolve(reader.result);
-        reader.onerror = () => reject(new Error('Gagal membaca file'));
-        reader.readAsDataURL(file);
-    });
+/** Sensor teks: huruf pertama + **** + huruf terakhir (contoh: P****L). */
+function maskEdges(s) {
+    const t = String(s ?? '').trim();
+    if (!t) return '—';
+    if (t.length === 1) return `${t}****`;
+    return `${t[0]}****${t[t.length - 1]}`;
 }
 
-const nfcChips = [
-    {
-        id: 1,
-        id_nfc: '1234567890',
-        id_produk: 'SK-001',
-        nama_produk: 'Sangkar Murai No 1 Original',
-        deskripsi_produk: 'Sangkar murai kayu jati ukiran',
-        nama_pemilik: 'Sazime Official',
-        tanggal_pembuatan: '2026-01-15',
-        nomor_seri: 'SER-001-2026',
-        tanggal_registrasi: '2026-02-01',
-        gambar: [],
-    },
-    {
-        id: 2,
-        id_nfc: '0987654321',
-        id_produk: 'SK-002',
-        nama_produk: 'Sangkar Lovebird Elegan',
-        deskripsi_produk: 'Sangkar lovebird bahan stainless',
-        nama_pemilik: 'Sazime Woodwork',
-        tanggal_pembuatan: '2026-02-10',
-        nomor_seri: 'SER-002-2026',
-        tanggal_registrasi: '2026-02-15',
-        gambar: [],
-    },
-];
+function maskAddressRough(s) {
+    const t = String(s ?? '').trim();
+    if (!t) return '—';
+    const compact = t.replace(/\s+/g, '');
+    if (compact.length <= 4) return maskEdges(compact);
+    return `${compact.slice(0, 2)}****${compact.slice(-2)}`;
+}
 
-const RequestTransferForm = ({ idNfc, namaProduk, pemilikLama }) => {
-    const [open, setOpen] = useState(false);
-    const [namaBaru, setNamaBaru] = useState('');
-    const [sent, setSent] = useState(false);
-    const [error, setError] = useState('');
-    const [dokumen, setDokumen] = useState(null);
-    const [dokumenNama, setDokumenNama] = useState('');
-    const fileInputRef = useRef(null);
+function maskGmail(gmail) {
+    const g = String(gmail || '');
+    const at = g.indexOf('@');
+    if (at < 1) return '***@gmail.com';
+    const local = g.slice(0, at);
+    const domain = g.slice(at + 1);
+    const prefix = local.slice(0, Math.min(3, local.length));
+    return `${prefix}***@${domain}`;
+}
 
-    const handleSubmit = async () => {
-        const val = namaBaru.trim();
-        if (!val) {
-            setError('Nama pemilik baru wajib diisi');
-            return;
-        }
-        if (val.toLowerCase() === pemilikLama.toLowerCase()) {
-            setError('Nama pemilik baru tidak boleh sama dengan pemilik lama');
-            return;
-        }
-        if (!dokumen) {
-            setError('Unggah dokumen permohonan yang sudah diisi (PDF, gambar, atau Word).');
-            return;
-        }
-        setError('');
-
-        const requests = JSON.parse(localStorage.getItem('sazime_transfer_requests') || '[]');
-        const alreadyPending = requests.some((r) => r.id_nfc === idNfc && r.status === 'pending');
-        if (alreadyPending) {
-            setError('Permintaan transfer untuk chip ini masih menunggu persetujuan admin.');
-            return;
-        }
-
-        let dataUrl;
-        try {
-            dataUrl = await readFileAsDataURL(dokumen);
-        } catch {
-            setError('Dokumen tidak bisa dibaca. Coba file lain.');
-            return;
-        }
-
-        const payload = {
-            id: Date.now(),
-            id_nfc: idNfc,
-            nama_produk: namaProduk,
-            pemilik_lama: pemilikLama,
-            pemilik_baru: val,
-            status: 'pending',
-            tanggal_pengajuan: new Date().toISOString().slice(0, 10),
-            tanggal_diproses: null,
-            dokumen: {
-                nama_file: dokumen.name,
-                tipe: dokumen.type || 'application/octet-stream',
-                ukuran_bytes: dokumen.size,
-                data_url: dataUrl,
-            },
-        };
-
-        try {
-            requests.push(payload);
-            localStorage.setItem('sazime_transfer_requests', JSON.stringify(requests));
-        } catch {
-            setError('Penyimpanan gagal (file terlalu besar untuk browser). Kurangi ukuran dokumen (maks. 1,5 MB).');
-            return;
-        }
-
-        setSent(true);
-    };
-
-    const onPickFile = (e) => {
-        const file = e.target.files?.[0];
-        setError('');
-        if (!file) {
-            setDokumen(null);
-            setDokumenNama('');
-            return;
-        }
-        if (file.size > MAX_DOKUMEN_BYTES) {
-            setError('Ukuran dokumen maksimal 1,5 MB.');
-            e.target.value = '';
-            setDokumen(null);
-            setDokumenNama('');
-            return;
-        }
-        setDokumen(file);
-        setDokumenNama(file.name);
-    };
-
-    if (sent) {
-        return (
-            <div className="bg-blue-50 border border-blue-100 rounded-[2rem] p-8 text-center space-y-4">
-                <div className="w-16 h-16 bg-blue-100 rounded-[1.5rem] flex items-center justify-center mx-auto shadow-sm">
-                    <Send className="w-7 h-7 text-blue-600" />
-                </div>
-                <p className="font-black text-blue-800 text-xs uppercase tracking-[0.2em]">Permintaan Dikirim</p>
-                <p className="text-sm text-blue-600 font-medium">Menunggu persetujuan admin.</p>
-            </div>
-        );
-    }
+function PelangganSangkarPanel({ verificationId }) {
+    const { user } = useAuth();
+    const registered = getConfirmedOwner(verificationId);
+    const ownerEmail = registered?.gmail || '';
+    const isOwnerSession = Boolean(user && registered && normalizeGmail(user.email) === normalizeGmail(ownerEmail));
 
     return (
-        <div className="border-t border-slate-100 pt-8 mt-2">
-            {!open ? (
-                <button
-                    type="button"
-                    onClick={() => setOpen(true)}
-                    className="w-full py-5 bg-slate-900 text-white rounded-3xl font-black text-xs uppercase tracking-widest hover:bg-black transition flex items-center justify-center gap-2 shadow-xl shadow-slate-200"
-                >
-                    <ArrowRight className="w-4 h-4" /> Request Pindah Pemilik
-                </button>
+        <div className="rounded-2xl border border-slate-200 bg-white p-6 md:p-8 shadow-sm">
+            <div className="flex items-center gap-3 mb-4">
+                <div className="w-11 h-11 rounded-xl bg-red-50 flex items-center justify-center text-red-600">
+                    <UserRound size={22} />
+                </div>
+                <div>
+                    <p className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">Pelanggan sangkar</p>
+                    <p className="text-sm font-bold text-slate-700">Data pemilik terdaftar</p>
+                </div>
+            </div>
+
+            {!registered ? (
+                <p className="text-sm font-bold text-amber-800 bg-amber-50 border border-amber-100 rounded-xl px-4 py-3">
+                    Belum ada pemilik konsumen — pembeli pertama wajib registrasi &amp; konfirmasi email.
+                </p>
             ) : (
-                <div className="space-y-6">
-                    <div className="bg-slate-50 rounded-3xl p-6 space-y-1 border border-slate-100">
-                        <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Pemilik Saat Ini</p>
-                        <p className="text-lg font-black text-slate-900">{pemilikLama}</p>
+                <div className="space-y-3 rounded-xl bg-slate-50 border border-slate-100 p-5">
+                    {!isOwnerSession && (
+                        <p className="text-xs font-medium text-slate-600 leading-relaxed pb-1 border-b border-slate-200/80">
+                            Nama, alamat, dan Gmail ditampilkan dalam bentuk <span className="font-bold text-slate-800">tersensor</span> untuk
+                            privasi (contoh nama: <span className="font-mono font-bold">P****L</span>).
+                        </p>
+                    )}
+                    <div>
+                        <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Nama</p>
+                        <p className="font-black text-slate-900 text-lg leading-tight tracking-wide">
+                            {isOwnerSession ? registered.nama : maskEdges(registered.nama)}
+                        </p>
                     </div>
-                    <div className="space-y-2">
-                        <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-4">
-                            Nama Pemilik Baru
-                        </label>
-                        <input
-                            type="text"
-                            value={namaBaru}
-                            onChange={(e) => {
-                                setNamaBaru(e.target.value);
-                                setError('');
-                            }}
-                            placeholder="Masukkan nama pemilik baru"
-                            className="w-full px-8 py-5 rounded-3xl bg-slate-50 border-2 border-slate-50 outline-none focus:border-red-600 focus:bg-white transition font-bold text-sm"
-                        />
+                    <div>
+                        <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Alamat</p>
+                        <p className="text-sm font-bold text-slate-700 uppercase leading-relaxed font-mono">
+                            {isOwnerSession ? registered.alamat : maskAddressRough(registered.alamat)}
+                        </p>
                     </div>
-
-                    <div className="rounded-3xl border-2 border-slate-100 bg-white p-6 space-y-4">
-                        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
-                            <div>
-                                <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Template dokumen</p>
-                                <p className="text-xs font-medium text-slate-600 leading-relaxed">
-                                    Unduh formulir Word (.docx), isi dan tanda tangani, lalu unggah di bawah.
-                                </p>
-                            </div>
-                            <a
-                                href={TEMPLATE_DOC_PATH}
-                                download="surat-permohonan-pindah-pemilik-nfc.docx"
-                                className="text-sm font-black text-red-600 hover:text-red-700 underline underline-offset-4 decoration-2 shrink-0"
-                            >
-                                Download File
-                            </a>
-                        </div>
-                        <div className="space-y-2">
-                            <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1 block">
-                                Unggah dokumen (wajib)
-                            </label>
-                            <input
-                                ref={fileInputRef}
-                                type="file"
-                                accept={ACCEPT_DOKUMEN}
-                                className="hidden"
-                                onChange={onPickFile}
-                            />
-                            <button
-                                type="button"
-                                onClick={() => fileInputRef.current?.click()}
-                                className="w-full flex items-center justify-center gap-2 px-6 py-5 rounded-3xl border-2 border-dashed border-slate-200 bg-slate-50 hover:border-red-300 hover:bg-red-50/30 transition font-bold text-sm text-slate-700"
-                            >
-                                <Upload className="w-5 h-5 text-red-600 shrink-0" />
-                                {dokumenNama ? 'Ganti file' : 'Pilih file (PDF, JPG, PNG, Word)'}
-                            </button>
-                            {dokumenNama && (
-                                <p className="flex items-center gap-2 text-xs font-bold text-slate-600 ml-1">
-                                    <Paperclip className="w-3.5 h-3.5 text-red-600 shrink-0" />
-                                    <span className="truncate">{dokumenNama}</span>
-                                </p>
-                            )}
-                            <p className="text-[10px] font-medium text-slate-400 ml-1">Maks. 1,5 MB.</p>
-                        </div>
+                    <div>
+                        <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Gmail</p>
+                        <p className="font-mono text-sm font-bold text-slate-900 break-all">
+                            {isOwnerSession ? registered.gmail : maskGmail(registered.gmail)}
+                        </p>
                     </div>
-
-                    {error && <p className="text-xs font-bold text-red-600 ml-1">{error}</p>}
-                    <div className="flex flex-col sm:flex-row gap-4">
-                        <button
-                            type="button"
-                            onClick={() => {
-                                setOpen(false);
-                                setNamaBaru('');
-                                setError('');
-                                setDokumen(null);
-                                setDokumenNama('');
-                                if (fileInputRef.current) fileInputRef.current.value = '';
-                            }}
-                            className="flex-1 py-5 bg-white text-slate-700 rounded-3xl font-black text-xs uppercase tracking-widest border-2 border-slate-100 hover:border-slate-200 transition"
-                        >
-                            Batal
-                        </button>
-                        <button
-                            type="button"
-                            onClick={() => void handleSubmit()}
-                            className="flex-1 py-5 bg-red-600 text-white rounded-3xl font-black text-xs uppercase tracking-widest shadow-2xl shadow-red-100 hover:bg-black transition flex items-center justify-center gap-2"
-                        >
-                            <Send className="w-4 h-4" /> Kirim Permintaan
-                        </button>
-                    </div>
+                    {isOwnerSession && (
+                        <p className="text-[10px] font-bold text-emerald-700 uppercase tracking-wider pt-2 border-t border-slate-200">
+                            Data lengkap — Anda masuk sebagai pemilik terdaftar
+                        </p>
+                    )}
                 </div>
             )}
         </div>
     );
-};
+}
 
 const GuestNfcCheck = () => {
-    const [input, setInput] = useState('');
+    const { user } = useAuth();
+    const [searchParams, setSearchParams] = useSearchParams();
     const [result, setResult] = useState(null);
     const [checked, setChecked] = useState(false);
+    const [lastQueryId, setLastQueryId] = useState('');
+    const [scanning, setScanning] = useState(false);
+    const [scanError, setScanError] = useState('');
+    const [testVerificationId, setTestVerificationId] = useState('');
+    const [testError, setTestError] = useState('');
 
-    const handleCheck = () => {
-        if (input.length !== 10) return;
-        const found = nfcChips.find((c) => c.id_nfc === input);
-        setResult(found || null);
+    const resolveFromValue = useCallback((raw) => {
+        const found = findChipByVerificationId(raw);
+        setResult(found);
         setChecked(true);
+        setLastQueryId(String(raw ?? '').replace(/\D/g, '').slice(0, 10));
+    }, []);
+
+    useEffect(() => {
+        const fromUrl =
+            searchParams.get('v')?.trim() ||
+            searchParams.get('verification_id')?.trim() ||
+            searchParams.get('verivication_id')?.trim();
+        if (!fromUrl) return;
+        resolveFromValue(fromUrl);
+        const next = new URLSearchParams(searchParams);
+        next.delete('v');
+        next.delete('verification_id');
+        next.delete('verivication_id');
+        setSearchParams(next, { replace: true });
+    }, [searchParams, setSearchParams, resolveFromValue]);
+
+    const handleScan = async () => {
+        setScanError('');
+        setScanning(true);
+        try {
+            const id = await scanNfcForVerificationId();
+            resolveFromValue(id);
+        } catch (e) {
+            setScanError(e instanceof Error ? e.message : 'Pemindaian gagal.');
+        } finally {
+            setScanning(false);
+        }
     };
+
+    const submitTestVerification = () => {
+        setTestError('');
+        const id = normalizeVerificationId(testVerificationId);
+        if (id.length !== 10) {
+            setTestError('Masukkan tepat 10 digit verification_id (contoh: 2600100001).');
+            return;
+        }
+        resolveFromValue(id);
+    };
+
+    const reset = () => {
+        setResult(null);
+        setChecked(false);
+        setLastQueryId('');
+        setScanError('');
+        setTestError('');
+        setTestVerificationId('');
+    };
+
+    const nfcSupported = typeof window !== 'undefined' && 'NDEFReader' in window;
 
     return (
         <div className="pt-24 min-h-screen bg-slate-50 overflow-x-hidden">
@@ -267,10 +170,12 @@ const GuestNfcCheck = () => {
                         Autentikasi Produk
                     </span>
                     <h1 className="text-5xl md:text-7xl font-black italic tracking-tighter text-slate-900 mb-8 leading-tight">
-                        Cek Chip <span className="text-red-600">NFC</span>
+                        Verifikasi <span className="text-red-600">Sangkar</span>
                     </h1>
                     <p className="text-xl text-slate-500 max-w-2xl mx-auto font-medium leading-relaxed">
-                        Verifikasi keaslian sangkar dan riwayat kepemilikan dengan memasukkan 10 digit kode NFC pada produk Anda.
+                        Verifikasi lewat <span className="text-slate-700 font-bold">NFC</span>: Android (Chrome) pakai tombol pindai; iPhone{' '}
+                        <span className="text-slate-700 font-bold">tempel tag</span> berisi URL. Untuk uji cepat tanpa perangkat, gunakan kolom{' '}
+                        <span className="text-slate-700 font-bold">verification_id</span> di panel kiri (sementara).
                     </p>
                 </div>
 
@@ -286,37 +191,66 @@ const GuestNfcCheck = () => {
                                     </div>
                                     <div>
                                         <h2 className="text-2xl md:text-3xl font-black italic tracking-tighter text-slate-900 mb-2">
-                                            Masukkan Kode
+                                            Pindai NFC
                                         </h2>
                                         <p className="text-xs font-bold text-slate-500 uppercase tracking-widest leading-relaxed">
-                                            Hanya angka, tepat 10 digit sesuai label NFC
+                                            Web NFC — Chrome di Android. Tag bisa berisi URL verifikasi atau ID 10 digit.
                                         </p>
                                     </div>
                                 </div>
 
-                                <div className="space-y-2">
-                                    <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-4">
-                                        Kode NFC (10 Digit)
+                                <button
+                                    type="button"
+                                    onClick={() => void handleScan()}
+                                    disabled={scanning || !nfcSupported}
+                                    className="w-full bg-red-600 text-white py-6 rounded-3xl font-black uppercase text-xs tracking-widest shadow-2xl shadow-red-100 hover:bg-black transition-all transform hover:-translate-y-0.5 disabled:opacity-45 disabled:cursor-not-allowed disabled:hover:translate-y-0 flex items-center justify-center gap-3"
+                                >
+                                    <ScanLine size={20} /> {scanning ? 'Menunggu tag…' : 'Pindai tag NFC'}
+                                </button>
+
+                                {!nfcSupported && (
+                                    <p className="text-xs font-medium text-slate-500 leading-relaxed">
+                                        Tombol Web NFC aktif di <span className="font-bold text-slate-700">Chrome Android</span>. Di perangkat
+                                        lain atau untuk uji cepat, isi kolom <span className="font-bold text-slate-700">verification_id</span>{' '}
+                                        (testing) di bawah.
+                                    </p>
+                                )}
+
+                                {scanError && <p className="text-sm font-bold text-red-600">{scanError}</p>}
+
+                                <div className="rounded-2xl border-2 border-dashed border-amber-300/80 bg-amber-50/50 p-5 space-y-3 text-left">
+                                    <p className="text-[10px] font-black text-amber-900 uppercase tracking-[0.2em]">Testing sementara</p>
+                                    <p className="text-xs font-medium text-slate-600 leading-relaxed">
+                                        Masukkan <span className="font-bold">verification_id</span> 10 digit dari data dummy (mis.{' '}
+                                        <span className="font-mono">2600100001</span>, <span className="font-mono">2600200001</span>).
+                                    </p>
+                                    <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1 block">
+                                        verification_id
                                     </label>
                                     <input
                                         type="text"
-                                        value={input}
-                                        onChange={(e) => setInput(e.target.value.replace(/\D/g, '').slice(0, 10))}
+                                        inputMode="numeric"
+                                        autoComplete="off"
+                                        value={testVerificationId}
+                                        onChange={(e) => {
+                                            setTestVerificationId(e.target.value.replace(/\D/g, '').slice(0, 10));
+                                            setTestError('');
+                                        }}
                                         placeholder="0000000000"
-                                        className="w-full px-8 py-5 rounded-3xl bg-slate-50 border-2 border-slate-50 outline-none focus:border-red-600 focus:bg-white transition font-mono font-black text-center text-xl sm:text-2xl tracking-[0.35em]"
                                         maxLength={10}
-                                        onKeyDown={(e) => e.key === 'Enter' && handleCheck()}
+                                        className="w-full px-5 py-4 rounded-2xl bg-white border-2 border-amber-100 outline-none focus:border-red-600 font-mono font-black text-center tracking-widest text-lg"
+                                        onKeyDown={(e) => e.key === 'Enter' && submitTestVerification()}
                                     />
+                                    {testError && <p className="text-sm font-bold text-red-600">{testError}</p>}
+                                    <button
+                                        type="button"
+                                        onClick={submitTestVerification}
+                                        disabled={testVerificationId.length !== 10}
+                                        className="w-full py-4 rounded-2xl font-black text-xs uppercase tracking-widest bg-amber-700 text-white hover:bg-amber-900 transition disabled:opacity-40 disabled:cursor-not-allowed"
+                                    >
+                                        Cek (testing)
+                                    </button>
                                 </div>
-
-                                <button
-                                    type="button"
-                                    onClick={handleCheck}
-                                    disabled={input.length !== 10}
-                                    className="w-full bg-red-600 text-white py-6 rounded-3xl font-black uppercase text-xs tracking-widest shadow-2xl shadow-red-100 hover:bg-black transition-all transform hover:-translate-y-0.5 disabled:opacity-45 disabled:cursor-not-allowed disabled:hover:translate-y-0 flex items-center justify-center gap-3"
-                                >
-                                    <ScanLine size={20} /> Cek Sekarang
-                                </button>
                             </div>
                         </div>
                     </div>
@@ -331,8 +265,8 @@ const GuestNfcCheck = () => {
                                     Siap Memverifikasi?
                                 </h3>
                                 <p className="text-slate-500 font-medium max-w-md leading-relaxed">
-                                    Setelah kode lengkap, tap <span className="font-black text-slate-800">Cek Sekarang</span>. Detail produk dan
-                                    status chip akan muncul di panel ini.
+                                    <span className="font-black text-slate-800">Pindai NFC</span>, buka dari tag/URL, atau{' '}
+                                    <span className="font-black text-slate-800">isi verification_id</span> (testing) di panel kiri.
                                 </p>
                             </div>
                         )}
@@ -340,92 +274,148 @@ const GuestNfcCheck = () => {
                         {checked && (
                             <div className="animate-in slide-in-from-bottom-4 fade-in duration-500">
                                 {result ? (
-                                    <div className="bg-white rounded-[4rem] border border-slate-100 shadow-sm overflow-hidden">
-                                        <div className="p-8 md:p-10 bg-emerald-50/80 border-b border-emerald-100 flex flex-wrap items-center gap-4">
-                                            <div className="w-14 h-14 rounded-2xl bg-white flex items-center justify-center text-emerald-600 shadow-sm">
-                                                <CheckCircle2 size={28} />
-                                            </div>
-                                            <div>
-                                                <span className="font-black text-emerald-800 text-xs uppercase tracking-[0.2em] block mb-1">
-                                                    Berhasil
-                                                </span>
-                                                <p className="text-2xl md:text-3xl font-black italic tracking-tighter text-emerald-950">
-                                                    Chip Terverifikasi
-                                                </p>
+                                    <div className="bg-white rounded-[2.5rem] md:rounded-[4rem] border border-slate-100 shadow-sm overflow-hidden">
+                                        {/* Header sukses */}
+                                        <div className="px-6 py-6 md:px-10 md:py-8 bg-gradient-to-br from-emerald-50 to-white border-b border-emerald-100/80">
+                                            <div className="flex flex-wrap items-center gap-4">
+                                                <div className="w-14 h-14 rounded-2xl bg-white flex items-center justify-center text-emerald-600 shadow-md border border-emerald-100">
+                                                    <CheckCircle2 size={28} />
+                                                </div>
+                                                <div>
+                                                    <span className="font-black text-emerald-700 text-[11px] uppercase tracking-[0.2em] block mb-0.5">
+                                                        Berhasil diverifikasi
+                                                    </span>
+                                                    <p className="text-2xl md:text-3xl font-black italic tracking-tighter text-slate-900">
+                                                        Produk asli Sazime
+                                                    </p>
+                                                </div>
                                             </div>
                                         </div>
-                                        <div className="p-8 md:p-12 space-y-8">
-                                            {result.gambar?.length > 0 && (
-                                                <div className="flex gap-4 overflow-x-auto pb-2 -mx-2 px-2">
+
+                                        {result.gambar?.length > 0 && (
+                                            <div className="px-6 pt-6 md:px-10 md:pt-10 pb-0">
+                                                <p className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] mb-4">
+                                                    Foto produk
+                                                </p>
+                                                <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 md:gap-4">
                                                     {result.gambar.map((img, i) => (
                                                         <div
                                                             key={i}
-                                                            className="w-24 h-24 rounded-3xl overflow-hidden border border-slate-100 shrink-0 shadow-sm"
+                                                            className="aspect-[4/3] rounded-2xl overflow-hidden border border-slate-100 shadow-sm bg-slate-100"
                                                         >
-                                                            <img src={img} alt={`Gambar ${i + 1}`} className="w-full h-full object-cover" />
+                                                            <img
+                                                                src={img}
+                                                                alt={`${result.nama_produk} — foto ${i + 1}`}
+                                                                className="w-full h-full object-cover hover:scale-[1.02] transition duration-300"
+                                                                loading="lazy"
+                                                                decoding="async"
+                                                            />
                                                         </div>
                                                     ))}
                                                 </div>
-                                            )}
+                                            </div>
+                                        )}
 
-                                            <div className="grid sm:grid-cols-2 gap-4">
-                                                <div className="bg-slate-50 p-6 rounded-[1.75rem] border border-slate-100">
-                                                    <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2">ID NFC</p>
-                                                    <p className="font-mono font-black text-slate-900 text-lg">{result.id_nfc}</p>
-                                                </div>
-                                                <div className="bg-slate-50 p-6 rounded-[1.75rem] border border-slate-100">
-                                                    <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2">
-                                                        ID Produk
-                                                    </p>
-                                                    <p className="font-black text-slate-900 text-lg">{result.id_produk}</p>
-                                                </div>
-                                                <div className="sm:col-span-2 bg-slate-50 p-6 rounded-[1.75rem] border border-slate-100">
-                                                    <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2">
-                                                        Nama Produk
-                                                    </p>
-                                                    <p className="font-black text-slate-900 text-lg">{result.nama_produk}</p>
-                                                </div>
-                                                <div className="bg-slate-50 p-6 rounded-[1.75rem] border border-slate-100">
-                                                    <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2">Pemilik</p>
-                                                    <p className="font-black text-slate-900">{result.nama_pemilik}</p>
-                                                </div>
-                                                <div className="bg-slate-50 p-6 rounded-[1.75rem] border border-slate-100">
-                                                    <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2">
-                                                        No. Seri
-                                                    </p>
-                                                    <p className="font-mono font-bold text-slate-900">{result.nomor_seri || '-'}</p>
-                                                </div>
-                                                {result.deskripsi_produk && (
-                                                    <div className="sm:col-span-2 bg-slate-50 p-6 rounded-[1.75rem] border border-slate-100">
-                                                        <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2">
-                                                            Deskripsi
+                                        <div className="p-6 md:p-10 space-y-8">
+                                            {/* Ringkasan chip — gelap, grid rapat */}
+                                            <div className="rounded-2xl md:rounded-[2rem] bg-slate-900 text-white p-6 md:p-8">
+                                                <p className="text-[10px] font-black text-white/45 uppercase tracking-[0.25em] mb-5">
+                                                    Ringkasan verifikasi
+                                                </p>
+                                                <div className="grid sm:grid-cols-3 gap-6 sm:gap-4">
+                                                    <div>
+                                                        <p className="text-[10px] font-black uppercase tracking-widest text-white/40 mb-1">
+                                                            ID verifikasi
                                                         </p>
-                                                        <p className="font-medium text-slate-600 leading-relaxed">{result.deskripsi_produk}</p>
-                                                    </div>
-                                                )}
-                                                {result.tanggal_pembuatan && (
-                                                    <div className="bg-slate-50 p-6 rounded-[1.75rem] border border-slate-100">
-                                                        <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2">
-                                                            Tgl. Pembuatan
+                                                        <p className="font-mono font-black text-lg md:text-xl tracking-wide break-all">
+                                                            {formatVerificationIdDisplay(result.verification_id)}
                                                         </p>
-                                                        <p className="font-bold text-slate-900">{result.tanggal_pembuatan}</p>
                                                     </div>
-                                                )}
-                                                {result.tanggal_registrasi && (
-                                                    <div className="bg-slate-50 p-6 rounded-[1.75rem] border border-slate-100">
-                                                        <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2">
-                                                            Tgl. Registrasi
+                                                    <div>
+                                                        <p className="text-[10px] font-black uppercase tracking-widest text-white/40 mb-1">
+                                                            Tgl. ID verifikasi
                                                         </p>
-                                                        <p className="font-bold text-slate-900">{result.tanggal_registrasi}</p>
+                                                        <p className="font-bold text-base md:text-lg">{result.tanggal_verifikasi_id || '—'}</p>
                                                     </div>
-                                                )}
+                                                </div>
                                             </div>
 
-                                            <RequestTransferForm
-                                                idNfc={result.id_nfc}
-                                                namaProduk={result.nama_produk}
-                                                pemilikLama={result.nama_pemilik}
+                                            {/* Detail produk */}
+                                            <div>
+                                                <p className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] mb-4">
+                                                    Informasi produk
+                                                </p>
+                                                <div className="grid sm:grid-cols-2 gap-3 md:gap-4">
+                                                    <div className="rounded-2xl bg-slate-50 border border-slate-100 p-5">
+                                                        <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1.5">
+                                                            Nama produk
+                                                        </p>
+                                                        <p className="font-black text-slate-900">{result.nama_produk}</p>
+                                                    </div>
+                                                    <div className="rounded-2xl bg-slate-50 border border-slate-100 p-5">
+                                                        <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1.5">
+                                                            Referensi produsen
+                                                        </p>
+                                                        <p className="font-bold text-slate-800">{result.nama_pemilik}</p>
+                                                    </div>
+                                                    <div className="rounded-2xl bg-slate-50 border border-slate-100 p-5">
+                                                        <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1.5">
+                                                            No. seri
+                                                        </p>
+                                                        <p className="font-mono font-bold text-slate-900">{result.nomor_seri || '—'}</p>
+                                                    </div>
+                                                    <div className="rounded-2xl bg-slate-50 border border-slate-100 p-5">
+                                                        <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1.5">
+                                                            Jenis sangkar
+                                                        </p>
+                                                        <p className="font-black text-base md:text-lg leading-snug">
+                                                            {result.jenis_sangkar || result.nama_produk}
+                                                        </p>
+                                                    </div>
+                                                    {result.deskripsi_produk && (
+                                                        <div className="sm:col-span-2 rounded-2xl bg-slate-50 border border-slate-100 p-5">
+                                                            <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1.5">
+                                                                Deskripsi
+                                                            </p>
+                                                            <p className="text-sm font-medium text-slate-600 leading-relaxed">
+                                                                {result.deskripsi_produk}
+                                                            </p>
+                                                        </div>
+                                                    )}
+                                                </div>
+                                            </div>
+
+                                            <RegisterRulesDisclosure />
+
+                                            <PelangganSangkarPanel
+                                                key={result.verification_id}
+                                                verificationId={result.verification_id}
                                             />
+
+                                            <div className="flex flex-col sm:flex-row gap-3 pt-2">
+                                                <Link
+                                                    to={
+                                                        user
+                                                            ? `/cek-nfc/registrasi?verification_id=${encodeURIComponent(result.verification_id)}`
+                                                            : `/masuk?next=${encodeURIComponent(
+                                                                  `/cek-nfc/registrasi?verification_id=${result.verification_id}`,
+                                                              )}`
+                                                    }
+                                                    className="flex-1 py-4 md:py-5 bg-red-600 text-white rounded-2xl md:rounded-3xl font-black text-xs uppercase tracking-widest hover:bg-black transition flex items-center justify-center gap-2 shadow-lg shadow-red-100"
+                                                >
+                                                    <ArrowRight className="w-4 h-4" />
+                                                    {getConfirmedOwner(result.verification_id)
+                                                        ? 'Pindah kepemilikan'
+                                                        : 'Registrasi pembeli pertama'}
+                                                </Link>
+                                                <button
+                                                    type="button"
+                                                    onClick={reset}
+                                                    className="py-4 md:py-5 px-6 rounded-2xl md:rounded-3xl font-black text-xs uppercase tracking-widest border-2 border-slate-200 text-slate-700 hover:border-red-600 hover:text-red-600 transition"
+                                                >
+                                                    Pindai lagi
+                                                </button>
+                                            </div>
                                         </div>
                                     </div>
                                 ) : (
@@ -435,24 +425,22 @@ const GuestNfcCheck = () => {
                                         </div>
                                         <div>
                                             <h3 className="text-3xl font-black italic tracking-tighter text-slate-900 mb-4">
-                                                Chip Tidak Ditemukan
+                                                Tidak ditemukan
                                             </h3>
                                             <p className="text-slate-500 font-medium max-w-lg mx-auto leading-relaxed">
-                                                Kode NFC{' '}
-                                                <span className="font-mono font-black text-red-600">{input}</span> tidak terdaftar di sistem
-                                                kami. Periksa kembali angka pada label atau hubungi tim Sazime.
+                                                ID verifikasi{' '}
+                                                <span className="font-mono font-black text-red-600">
+                                                    {lastQueryId ? formatVerificationIdDisplay(lastQueryId) : '—'}
+                                                </span>{' '}
+                                                tidak terdaftar. Periksa tag atau hubungi tim Sazime.
                                             </p>
                                         </div>
                                         <button
                                             type="button"
-                                            onClick={() => {
-                                                setInput('');
-                                                setChecked(false);
-                                                setResult(null);
-                                            }}
+                                            onClick={reset}
                                             className="px-10 py-5 bg-slate-900 text-white rounded-3xl font-black text-xs uppercase tracking-widest hover:bg-black transition shadow-xl"
                                         >
-                                            Coba Lagi
+                                            Coba lagi
                                         </button>
                                     </div>
                                 )}

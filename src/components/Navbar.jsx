@@ -1,8 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { NavLink, Link } from 'react-router-dom';
-import { Menu, X, ChevronRight } from 'lucide-react';
+import { Menu, X, ChevronRight, User } from 'lucide-react';
+import { useAuth } from '../context/AuthContext';
 
 const Navbar = () => {
+    const { user, ready } = useAuth();
     const [isOpen, setIsOpen] = useState(false);
     const [isScrolled, setIsScrolled] = useState(false);
 
@@ -40,24 +42,41 @@ const Navbar = () => {
 
                 {/* Desktop Links */}
                 <div className="hidden md:flex items-center gap-8">
-                    {navLinks.map((link) => (
-                        <NavLink
-                            key={link.name}
-                            to={link.path}
-                            className={({ isActive }) => `
+                    <div className="hidden md:flex items-center gap-6">
+                        {navLinks.map((link) => (
+                            <NavLink
+                                key={link.name}
+                                to={link.path}
+                                className={({ isActive }) => `
                 text-sm font-bold uppercase tracking-widest transition-colors
                 ${isActive ? 'text-red-600' : isScrolled ? 'text-slate-600 hover:text-red-600' : 'text-slate-700 hover:text-red-600'}
               `}
-                        >
-                            {link.name}
-                        </NavLink>
-                    ))}
-                    <Link
-                        to="/produk"
-                        className="bg-red-600 text-white px-6 py-3 rounded-2xl font-bold text-xs uppercase tracking-widest shadow-lg shadow-red-200 hover:bg-red-700 transition transform hover:-translate-y-1"
-                    >
-                        Mulai Belanja
-                    </Link>
+                            >
+                                {link.name}
+                            </NavLink>
+                        ))}
+                        {ready && user ? (
+                            <NavLink
+                                to="/profil"
+                                className={({ isActive }) =>
+                                    `flex items-center gap-2 text-sm font-bold uppercase tracking-widest transition-colors ${
+                                        isActive ? 'text-red-600' : isScrolled ? 'text-slate-600 hover:text-red-600' : 'text-slate-700 hover:text-red-600'
+                                    }`
+                                }
+                            >
+                                <User size={18} /> Profil
+                            </NavLink>
+                        ) : ready ? (
+                            <>
+                                <Link
+                                    to="/masuk"
+                                    className="bg-slate-900 text-white px-5 py-2.5 rounded-2xl font-bold text-xs uppercase tracking-widest hover:bg-black transition"
+                                >
+                                    Masuk
+                                </Link>
+                            </>
+                        ) : null}
+                    </div>
                 </div>
 
                 {/* Mobile Toggle */}
@@ -108,6 +127,33 @@ const Navbar = () => {
                                 )}
                             </NavLink>
                         ))}
+                        {ready && user ? (
+                            <NavLink
+                                to="/profil"
+                                onClick={() => setIsOpen(false)}
+                                className="text-3xl font-black uppercase tracking-tighter text-slate-900 flex justify-between items-center"
+                            >
+                                Profil
+                                <ChevronRight className="text-slate-200" size={24} />
+                            </NavLink>
+                        ) : ready ? (
+                            <>
+                                <Link
+                                    to="/masuk"
+                                    onClick={() => setIsOpen(false)}
+                                    className="text-2xl font-black uppercase text-slate-700"
+                                >
+                                    Masuk
+                                </Link>
+                                <Link
+                                    to="/daftar"
+                                    onClick={() => setIsOpen(false)}
+                                    className="text-2xl font-black uppercase text-red-600"
+                                >
+                                    Daftar
+                                </Link>
+                            </>
+                        ) : null}
                     </div>
 
                     <div className="mt-auto pt-10 border-t border-slate-100">
