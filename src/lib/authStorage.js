@@ -20,15 +20,25 @@ function readUsers() {
     if (idx === -1) {
         users.push({
             id: `seed-penerima-${Date.now()}`,
-            name: 'PEMILIK DEMO',
+            name: 'MUHAMMAD KHOIRUL ANAM',
             email: DEMO_OWNER_EMAIL,
             password: DEMO_OWNER_PASSWORD,
-            alamat: '',
+            alamat: 'BANYUURIP BARAT 138 RT 04 RW 01 BANYUURIP TEMANGGUNG',
             created_at: new Date().toISOString(),
         });
         writeUsers(users);
     } else if (users[idx].password !== DEMO_OWNER_PASSWORD) {
         users[idx] = { ...users[idx], password: DEMO_OWNER_PASSWORD };
+        writeUsers(users);
+    } else if (
+        users[idx].name !== 'MUHAMMAD KHOIRUL ANAM' ||
+        !users[idx].alamat
+    ) {
+        users[idx] = {
+            ...users[idx],
+            name: 'MUHAMMAD KHOIRUL ANAM',
+            alamat: 'BANYUURIP BARAT 138 RT 04 RW 01 BANYUURIP TEMANGGUNG',
+        };
         writeUsers(users);
     }
     return users;

@@ -1,12 +1,31 @@
 const STORAGE_CONFIRMED = 'sazime_ownership_confirmed';
 const STORAGE_PENDING = 'sazime_ownership_pending';
 
+/** Demo publik: https://sazime-landing-web.vercel.app/cek-nfc?v=2600100001 */
+export const DEMO_NFC_PUBLIC_URL = 'https://sazime-landing-web.vercel.app/cek-nfc?v=2600100001';
+export const DEMO_VERIFICATION_ID = '2600100001';
+
+const DEMO_CONFIRMED_OWNER = {
+    verification_id: DEMO_VERIFICATION_ID,
+    nama: 'MUHAMMAD KHOIRUL ANAM',
+    alamat: 'BANYUURIP BARAT 138 RT 04 RW 01 BANYUURIP TEMANGGUNG',
+    gmail: 'penerima@gmail.com',
+    confirmed_at: '2026-02-01T00:00:00.000Z',
+    registration_kind: 'first',
+};
+
 function readConfirmedMap() {
+    let map;
     try {
-        return JSON.parse(localStorage.getItem(STORAGE_CONFIRMED) || '{}');
+        map = JSON.parse(localStorage.getItem(STORAGE_CONFIRMED) || '{}');
     } catch {
-        return {};
+        map = {};
     }
+    if (!map[DEMO_VERIFICATION_ID]) {
+        map[DEMO_VERIFICATION_ID] = { ...DEMO_CONFIRMED_OWNER };
+        localStorage.setItem(STORAGE_CONFIRMED, JSON.stringify(map));
+    }
+    return map;
 }
 
 function readPendingList() {
