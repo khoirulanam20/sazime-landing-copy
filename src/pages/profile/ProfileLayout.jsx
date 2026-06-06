@@ -1,6 +1,6 @@
 import React from 'react';
 import { NavLink, Outlet, Link, useNavigate } from 'react-router-dom';
-import { User, Package, LogOut, ChevronRight } from 'lucide-react';
+import { User, Package, ClipboardList, LogOut, ChevronRight } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 
 export default function ProfileLayout() {
@@ -10,6 +10,7 @@ export default function ProfileLayout() {
     const nav = [
         { to: '/profil', end: true, label: 'Profil saya', icon: User },
         { to: '/profil/produk', label: 'Produk saya', icon: Package },
+        { to: '/profil/registrasi-produk', label: 'Registrasi produk', icon: ClipboardList },
     ];
 
     return (

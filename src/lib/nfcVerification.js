@@ -1,5 +1,17 @@
 import { nfcChips } from '../data/nfcChips';
 
+/** Spesifikasi tag produk Sazime — HF NFC (bukan LF 125 kHz). */
+export const NFC_CHIP_SPEC = {
+    frekuensi: '13.56 MHz',
+    tipe: 'HF NFC (ISO 14443, NDEF)',
+    catatan: 'Tag produk memakai chip HF 13,56 MHz dengan record NDEF URI. LF 125 kHz tidak didukung untuk alur Web NFC ini.',
+};
+
+const DEFAULT_SCAN_BASE =
+    typeof import.meta !== 'undefined' && import.meta.env?.VITE_PUBLIC_SITE_URL
+        ? String(import.meta.env.VITE_PUBLIC_SITE_URL).replace(/\/$/, '')
+        : 'https://sazime.id';
+
 /** Kategori 3 digit; dipakai saat penerbitan ID (tahun + kategori + nomor reset per kategori). */
 export const NFC_PRODUCT_CATEGORIES = [
     { code: '001', label: 'Sangkar Murai' },
@@ -23,6 +35,30 @@ export function findChipByVerificationId(raw) {
     const v = normalizeVerificationId(raw);
     if (v.length !== 10) return null;
     return nfcChips.find((c) => c.verification_id === v) ?? null;
+}
+
+/** URL yang ditulis ke chip (NDEF URI) — dipakai saat scan tag. */
+export function buildVerificationScanUrl(verificationId, baseUrl = DEFAULT_SCAN_BASE) {
+    const vid = normalizeVerificationId(verificationId);
+    if (vid.length !== 10) return '';
+    const base = String(baseUrl || DEFAULT_SCAN_BASE).replace(/\/$/, '');
+    return `${base}/cek-nfc?v=${encodeURIComponent(vid)}`;
+}
+
+/** URL preview halaman verifikasi (bisa sama dengan scan atau kustom dari admin). */
+export function buildVerificationPreviewUrl(verificationId, baseUrl = DEFAULT_SCAN_BASE) {
+    return buildVerificationScanUrl(verificationId, baseUrl);
+}
+
+/** Gabungkan url_scan / url_preview dari data admin atau bangun otomatis dari verification_id. */
+export function resolveChipUrls(chip, baseUrl) {
+    const origin =
+        baseUrl ||
+        (typeof window !== 'undefined' ? window.location.origin : DEFAULT_SCAN_BASE);
+    const vid = chip?.verification_id || '';
+    const url_scan = chip?.url_scan || buildVerificationScanUrl(vid, origin);
+    const url_preview = chip?.url_preview || url_scan;
+    return { url_scan, url_preview };
 }
 
 function extractTenDigitsFromString(str) {

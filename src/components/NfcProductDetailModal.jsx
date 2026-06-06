@@ -2,6 +2,7 @@ import React, { useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { CheckCircle2, X } from 'lucide-react';
 import { formatVerificationIdDisplay } from '../lib/nfcVerification';
+import NfcChipUrlPanel from './NfcChipUrlPanel';
 
 /**
  * @param {object} props
@@ -121,6 +122,7 @@ export default function NfcProductDetailModal({ open, onClose, chip, verificatio
                         </p>
                     ) : (
                         <>
+                            <NfcChipUrlPanel chip={chip} />
                             <div>
                                 <p className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] mb-3">Informasi produk</p>
                                 <div className="grid sm:grid-cols-2 gap-3">

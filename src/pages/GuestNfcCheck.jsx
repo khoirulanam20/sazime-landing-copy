@@ -2,9 +2,11 @@ import React, { useCallback, useEffect, useState } from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
 import { ScanLine, CheckCircle2, AlertCircle, ArrowRight, UserRound } from 'lucide-react';
 import RegisterRulesDisclosure from '../components/RegisterRulesDisclosure';
+import NfcChipUrlPanel from '../components/NfcChipUrlPanel';
 import {
     findChipByVerificationId,
     formatVerificationIdDisplay,
+    NFC_CHIP_SPEC,
     normalizeVerificationId,
     scanNfcForVerificationId,
 } from '../lib/nfcVerification';
@@ -173,8 +175,8 @@ const GuestNfcCheck = () => {
                         Verifikasi <span className="text-red-600">Sangkar</span>
                     </h1>
                     <p className="text-xl text-slate-500 max-w-2xl mx-auto font-medium leading-relaxed">
-                        Verifikasi lewat <span className="text-slate-700 font-bold">NFC</span>: Android (Chrome) pakai tombol pindai; iPhone{' '}
-                        <span className="text-slate-700 font-bold">tempel tag</span> berisi URL. Untuk uji cepat tanpa perangkat, gunakan kolom{' '}
+                        Verifikasi lewat <span className="text-slate-700 font-bold">NFC HF {NFC_CHIP_SPEC.frekuensi}</span> (ISO 14443 / NDEF): Android (Chrome) pakai tombol pindai; iPhone{' '}
+                        <span className="text-slate-700 font-bold">tempel tag</span> berisi URL scan. Untuk uji cepat tanpa tag, gunakan kolom{' '}
                         <span className="text-slate-700 font-bold">verification_id</span> di panel kiri (sementara).
                     </p>
                 </div>
@@ -194,7 +196,7 @@ const GuestNfcCheck = () => {
                                             Pindai NFC
                                         </h2>
                                         <p className="text-xs font-bold text-slate-500 uppercase tracking-widest leading-relaxed">
-                                            Web NFC — Chrome di Android. Tag bisa berisi URL verifikasi atau ID 10 digit.
+                                            Web NFC — Chrome Android. Tag HF {NFC_CHIP_SPEC.frekuensi} berisi URL scan (NDEF URI), bukan LF 125 kHz.
                                         </p>
                                     </div>
                                 </div>
@@ -213,6 +215,15 @@ const GuestNfcCheck = () => {
                                         Tombol Web NFC aktif di <span className="font-bold text-slate-700">Chrome Android</span>. Di perangkat
                                         lain atau untuk uji cepat, isi kolom <span className="font-bold text-slate-700">verification_id</span>{' '}
                                         (testing) di bawah.
+                                    </p>
+                                )}
+
+                                {nfcSupported && (
+                                    <p className="text-xs font-medium text-slate-600 leading-relaxed bg-slate-50 border border-slate-100 rounded-2xl px-4 py-3">
+                                        <span className="font-bold text-slate-800">Hanya tag produk Sazime (HF {NFC_CHIP_SPEC.frekuensi}).</span> Chip KTP, kartu e-money
+                                        (Flazz, tap payment, dsb.), dan kartu bank memakai NFC lain — biasanya{' '}
+                                        <span className="font-bold">tidak bisa</span> dibaca Chrome (bukan format NDEF untuk web). Gunakan tag
+                                        sangkar Sazime atau uji dengan kolom <span className="font-bold">verification_id</span>.
                                     </p>
                                 )}
 
@@ -339,6 +350,8 @@ const GuestNfcCheck = () => {
                                                     </div>
                                                 </div>
                                             </div>
+
+                                            <NfcChipUrlPanel chip={result} />
 
                                             {/* Detail produk */}
                                             <div>

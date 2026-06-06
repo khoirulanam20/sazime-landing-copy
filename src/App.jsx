@@ -17,6 +17,7 @@ import LoginPage from './pages/LoginPage';
 import ProfileLayout from './pages/profile/ProfileLayout';
 import ProfileHome from './pages/profile/ProfileHome';
 import ProfileProducts from './pages/profile/ProfileProducts';
+import ProfileProductRegistration from './pages/profile/ProfileProductRegistration';
 
 const ScrollToTop = () => {
   const { pathname } = useLocation();
@@ -73,6 +74,7 @@ function App() {
               >
                 <Route index element={<ProfileHome />} />
                 <Route path="produk" element={<ProfileProducts />} />
+                <Route path="registrasi-produk" element={<ProfileProductRegistration />} />
               </Route>
             </Route>
           </Routes>

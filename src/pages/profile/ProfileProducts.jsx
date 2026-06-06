@@ -41,12 +41,20 @@ export default function ProfileProducts() {
             {items.length === 0 ? (
                 <div className="bg-white rounded-[2rem] border border-dashed border-slate-200 p-12 text-center">
                     <p className="text-slate-600 font-medium mb-6">Belum ada produk. Verifikasi NFC lalu daftarkan kepemilian.</p>
-                    <Link
-                        to="/cek-nfc"
-                        className="inline-block px-8 py-4 bg-red-600 text-white rounded-3xl font-black text-xs uppercase tracking-widest"
-                    >
-                        Ke Cek NFC
-                    </Link>
+                    <div className="flex flex-col sm:flex-row flex-wrap items-center justify-center gap-3">
+                        <Link
+                            to="/profil/registrasi-produk"
+                            className="inline-block px-8 py-4 bg-slate-900 text-white rounded-3xl font-black text-xs uppercase tracking-widest hover:bg-black transition"
+                        >
+                            Registrasi produk
+                        </Link>
+                        <Link
+                            to="/cek-nfc"
+                            className="inline-block px-8 py-4 bg-red-600 text-white rounded-3xl font-black text-xs uppercase tracking-widest hover:bg-black transition"
+                        >
+                            Ke Cek NFC
+                        </Link>
+                    </div>
                 </div>
             ) : (
                 <ul className="space-y-4">
